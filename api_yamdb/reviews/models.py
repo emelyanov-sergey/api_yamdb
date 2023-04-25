@@ -3,11 +3,11 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .validators import validate_year
+from .validators import validate_year, validate_username
 
 
 class User(AbstractUser):
-    """Модель пользователя. Могут быть разные роли - админ, модератор и просто юзер."""
+    """Модель пользователя. Роли - админ, модератор и юзер."""
 
     ADMIN = 'admin'
     MODERATOR = 'moderator'
@@ -20,11 +20,13 @@ class User(AbstractUser):
 
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
+        max_length=254,
         unique=True,
     )
     username = models.CharField(
+        validators=(validate_username,),
         verbose_name='Имя пользователя',
-        max_length=50,
+        max_length=150,
         null=False,
         unique=True
     )
@@ -40,6 +42,27 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
+    first_name = models.CharField(
+        verbose_name='Имя',
+        max_length=150,
+        blank=True
+    )
+    last_name = models.CharField(
+        verbose_name='Фамилия',
+        max_length=150,
+        blank=True
+    )
+    confirmation_code = models.CharField(
+        verbose_name='Код подтверждения',
+        max_length=255,
+        null=True,
+        blank=False,
+        default='XXXX'
+    )
+
+    @property
+    def is_user(self):
+        return self.role == self.USER
 
     @property
     def is_moderator(self):
