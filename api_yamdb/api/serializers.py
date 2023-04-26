@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from reviews.models import Genre, Category, Title, Review, User, Comment
+from reviews.validators import validate_username
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -83,3 +84,26 @@ class UserSerializer(serializers.ModelSerializer):
                 'Пользователь с таким email уже существует'
             )
         return data
+
+
+class GetTokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True)
+    confirmation_code = serializers.CharField(
+        required=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'confirmation_code'
+        )
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True, max_lehgth=254)
+    username = serializers.CharField(
+        required=True,
+        max_lehgth=150,
+        validators=(validate_username,)
+    )
