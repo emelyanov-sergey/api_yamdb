@@ -141,3 +141,46 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ("retrieve", "list"):
             return ReadOnlyTitleSerializer
         return TitleSerializer
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели Comment."""
+
+    serializer_class = CommentSerializer
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+    )
+
+    def get_review(self):
+        """Возвращает объект текущего отзыва."""
+        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+
+    def get_queryset(self):
+        """Возвращает комментарии для текущего отзыва."""
+        return self.get_review().comments.all()
+
+    def perform_create(self, serializer):
+        """Создает комментарий для текущего отзыва,
+        где автор это текущий пользователь."""
+        serializer.save(author=self.request.user, review=self.get_review())
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обьектов модели Review."""
+
+    serializer_class = ReviewSerializer
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+    )
+
+    def get_title(self):
+        """Возвращает объект текущего произведения."""
+        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+
+    def get_queryset(self):
+        """Возвращает queryset c отзывами для текущего произведения."""
+        return self.get_title().reviews.all()
+
+    def perform_create(self, serializer):
+        """Создает отзыв для текущего произведения,
+        где автор это текущий пользователь."""
+        serializer.save(author=self.request.user, title=self.get_title())
