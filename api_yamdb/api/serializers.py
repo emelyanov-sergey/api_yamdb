@@ -62,8 +62,8 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели User."""
+class AdminSerializer(serializers.ModelSerializer):
+    """Сериалайзер для админа: Все поля редактируемы."""
 
     class Meta:
         model = User
@@ -71,24 +71,26 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
 
-    def validate(self, data):
-        """Запрещает создавать пользователя с уже имеющимся в базе
-        username или email."""
 
-        if User.objects.filter(username=data.get('username')):
-            raise serializers.ValidationError(
-                'Пользователь с таким username уже существует'
-            )
-        if User.objects.filter(email=data.get('email')):
-            raise serializers.ValidationError(
-                'Пользователь с таким email уже существует'
-            )
-        return data
+class UserSerializer(serializers.ModelSerializer):
+    """Сериалайзер простого юзера: Невозможно поменять роль."""
+
+    username = serializers.CharField(required=True, max_length=150,
+                                     validators=(validate_username, ))
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
+        read_only_fields = ('role',)
 
 
 class GetTokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150)
-    confirmation_code = serializers.CharField()
+    """Сериалайзер токена."""
+
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
 
     class Meta:
         model = User
@@ -99,12 +101,31 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.ModelSerializer):
+    """Сериалайзер для регистрации пользователя."""
+    
     email = serializers.EmailField(required=True, max_length=254)
     username = serializers.CharField(
         required=True,
         max_length=150,
         validators=(validate_username,)
     )
+
+    def validate(self, data):
+        """Запрещает создавать пользователя с уже имеющимся в базе
+        username или email."""
+
+        if not User.objects.filter(
+            username=data['username'], email=data['email']
+        ):
+            if User.objects.filter(username=data.get('username')):
+                raise serializers.ValidationError(
+                    'Пользователь с таким username уже существует'
+                )
+            if User.objects.filter(email=data.get('email')):
+                raise serializers.ValidationError(
+                    'Пользователь с таким email уже существует'
+                )
+        return data
 
     class Meta:
         model = User
