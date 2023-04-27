@@ -13,7 +13,7 @@ router_v1.register(r'categories', CategoryViewSet)
 router_v1.register(r'genres', GenreViewSet)
 router_v1.register(r'titles', TitleViewSet)
 router_v1.register(r'comments', CommentViewSet)
-router_v1.register(r'comments', ReviewViewSet)
+router_v1.register(r'reviews', ReviewViewSet)
 
 urlpatterns = [
     path('v1/', include(router_v1.urls)),

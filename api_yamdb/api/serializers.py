@@ -76,7 +76,7 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер простого юзера: Невозможно поменять роль."""
 
     username = serializers.CharField(required=True, max_length=150,
-                                     validators=(validate_username, ))
+                                     validators=(validate_username,))
 
     class Meta:
         model = User
@@ -151,7 +151,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         if not self.context.get('request').method == 'POST':
             return data
         author = self.context.get('request').user
-        title_id = self.context.get('view').kwargs.get('title_id')
+        title_id = self.context.get('view').kwargs.get('id')
         if Review.objects.filter(author=author, title=title_id).exists():
             raise serializers.ValidationError(
                 'Вы не можете оставить более одного отзыва на произведение'
