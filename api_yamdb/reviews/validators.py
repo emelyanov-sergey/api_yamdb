@@ -20,8 +20,7 @@ def validate_username(value):
 
 def validate_year(value):
     """Проверяем, не введён ли ещё не наступивший год."""
-    current_year = datetime.now().year
-    if value > current_year:
+    if value > datetime.now().year:
         raise ValidationError(
             'Введенный год не может быть больше текущего!'
         )
