@@ -25,17 +25,18 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для произведений."""
     genre = serializers.SlugRelatedField(
-        slug_field='slug', many=True, queryset=Genre.objects.all()
+        slug_field='slug',
+        many=True,
+        queryset=Genre.objects.all()
     )
     category = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Category.objects.all()
+        slug_field='slug',
+        queryset=Category.objects.all()
     )
 
     class Meta:
         model = Title
-        fields = (
-            'name', 'year', 'description', 'genre', 'category'
-        )
+        fields = ( 'name', 'year', 'description', 'genre', 'category')
 
 
 class ReadOnlyTitleSerializer(serializers.ModelSerializer):
@@ -75,8 +76,11 @@ class AdminSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер простого юзера: Невозможно поменять роль."""
 
-    username = serializers.CharField(required=True, max_length=150,
-                                     validators=(validate_username,))
+    username = serializers.CharField(
+        required=True,
+        max_length=150,
+        validators=(validate_username,)
+    )
 
     class Meta:
         model = User
@@ -94,10 +98,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'username',
-            'confirmation_code'
-        )
+        fields = ('username', 'confirmation_code')
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -129,18 +130,13 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'username',
-            'email',
-        )
+        fields = ('username', 'email')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
 
-    author = serializers.StringRelatedField(
-        read_only=True
-    )
+    author = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Review
@@ -151,7 +147,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         if not self.context.get('request').method == 'POST':
             return data
         author = self.context.get('request').user
-        title_id = self.context.get('view').kwargs.get('id')
+        title_id = self.context.get('view').kwargs.get('title_id')
         if Review.objects.filter(author=author, title=title_id).exists():
             raise serializers.ValidationError(
                 'Вы не можете оставить более одного отзыва на произведение'

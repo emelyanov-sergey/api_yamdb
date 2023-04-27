@@ -14,11 +14,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.filters import SearchFilter
 
 from reviews.models import User, Category, Genre, Title, Review, Comment
-from .serializers import (CategorySerializer, GenreSerializer,
+from api.serializers import (CategorySerializer, GenreSerializer,
                           TitleSerializer, ReadOnlyTitleSerializer,
                           CommentSerializer, UserSerializer,
                           GetTokenSerializer, AdminSerializer,
-                          SignUpSerializer)
+                          SignUpSerializer, ReviewSerializer)
 from .mixins import CreateDeleteListViewSet
 from .permissions import (IsAdmin, IsAdminOrReadOnly,
                           IsAuthorOrModeratorOrReadOnly)
@@ -146,13 +146,11 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Comment."""
 
     serializer_class = CommentSerializer
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-    )
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_review(self):
         """Возвращает объект текущего отзыва."""
-        return get_object_or_404(Review, pk=self.kwargs.get('id'))
+        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
         """Возвращает комментарии для текущего отзыва."""
@@ -168,13 +166,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для обьектов модели Review."""
 
     serializer_class = ReviewSerializer
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-    )
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def get_title(self):
         """Возвращает объект текущего произведения."""
-        return get_object_or_404(Title, pk=self.kwargs.get('id'))
+        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
 
     def get_queryset(self):
         """Возвращает queryset c отзывами для текущего произведения."""
