@@ -169,7 +169,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для обьектов модели Review."""
 
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsModeratorAdminOwnerOrReadOnly,)
 
     def get_title(self):
         """Возвращает объект текущего произведения."""
