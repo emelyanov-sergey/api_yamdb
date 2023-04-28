@@ -148,18 +148,16 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def get_review(self):
-        """Возвращает объект текущего отзыва."""
-        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
         """Возвращает комментарии для текущего отзыва."""
-        return self.get_review().comments.all()
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        return review.comments.all()
 
     def perform_create(self, serializer):
         """Создает комментарий для текущего отзыва,
         где автор это текущий пользователь."""
-        serializer.save(author=self.request.user, review=self.get_review())
+        serializer.save(author=self.request.user)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -168,13 +166,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def get_title(self):
-        """Возвращает объект текущего произведения."""
-        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
 
     def get_queryset(self):
         """Возвращает queryset c отзывами для текущего произведения."""
-        return self.get_title().reviews.all()
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         """Создает отзыв для текущего произведения,
