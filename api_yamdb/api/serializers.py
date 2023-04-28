@@ -56,11 +56,15 @@ class ReadOnlyTitleSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Comment."""
 
-    author = serializers.StringRelatedField(read_only=True)
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+    review = serializers.SlugRelatedField(slug_field='text', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'author', 'pub_date')
+        fields = ('id', 'text', 'author', 'pub_date', 'review')
 
 
 class AdminSerializer(serializers.ModelSerializer):
@@ -136,8 +140,12 @@ class SignUpSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
 
-    author = serializers.StringRelatedField(read_only=True)
-    title = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    author = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        slug_field='username',
+        read_only=True
+    )
+    title = serializers.SlugRelatedField(slug_field='name', read_only=True,)
 
     class Meta:
         model = Review
