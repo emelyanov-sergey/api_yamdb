@@ -20,8 +20,9 @@ from api.serializers import (CategorySerializer, GenreSerializer,
                           GetTokenSerializer, AdminSerializer,
                           SignUpSerializer, ReviewSerializer)
 from .mixins import CreateDeleteListViewSet
-from .permissions import (IsAdmin, IsAdminOrReadOnly,
-                          IsAuthorOrModeratorOrReadOnly)
+from api.permissions import (IsAdmin, IsAdminOrReadOnly,
+                          IsAuthorOrModeratorOrReadOnly,
+                          IsModeratorAdminOwnerOrReadOnly)
 
 
 class UserCreation(APIView):
@@ -113,6 +114,7 @@ class CategoryViewSet(CreateDeleteListViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    filter_backends = (SearchFilter,)
     permission_classes = (IsAdminOrReadOnly,)
     search_fields = ('name',)
     lookup_field = "slug"
@@ -123,6 +125,7 @@ class GenreViewSet(CreateDeleteListViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    filter_backends = (SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
     lookup_field = "slug"
@@ -146,7 +149,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Comment."""
 
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsModeratorAdminOwnerOrReadOnly,)
 
     def get_review(self):
         """Возвращает объект текущего отзыва."""
