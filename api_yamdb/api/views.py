@@ -114,7 +114,7 @@ class CategoryViewSet(CreateDeleteListViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
-    search_fields = ["name"]
+    search_fields = ('name',)
     lookup_field = "slug"
 
 
@@ -123,7 +123,7 @@ class GenreViewSet(CreateDeleteListViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    search_fields = ["name"]
+    search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
     lookup_field = "slug"
 
@@ -133,12 +133,12 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     queryset = Title.objects.all().annotate(
         Avg("reviews__score")
-    ).order_by("name")
+    ).order_by('name')
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
 
     def get_serializer_class(self):
-        if self.action in ("retrieve", "list"):
+        if self.action in ('retrieve', 'list'):
             return ReadOnlyTitleSerializer
         return TitleSerializer
 
@@ -148,16 +148,18 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
+    def get_review(self):
+        """Возвращает объект текущего отзыва."""
+        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
         """Возвращает комментарии для текущего отзыва."""
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        return review.comments.all()
+        return self.get_review().comments.all()
 
     def perform_create(self, serializer):
         """Создает комментарий для текущего отзыва,
         где автор это текущий пользователь."""
-        serializer.save(author=self.request.user)
+        serializer.save(author=self.request.user, review=self.get_review())
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
