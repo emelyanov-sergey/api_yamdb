@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
-
+from api.filters import TitleFilterByNameCategoryGenreYear
 from reviews.models import User, Category, Genre, Title, Review, Comment
 from api.serializers import (CategorySerializer, GenreSerializer,
                           TitleSerializer, ReadOnlyTitleSerializer,
@@ -139,7 +139,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         Avg("reviews__score")
     ).order_by('name')
     filter_backends = (DjangoFilterBackend,)
-    # filterset_fields = ('genre__slug',)
+    filterset_class = TitleFilterByNameCategoryGenreYear
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
 
