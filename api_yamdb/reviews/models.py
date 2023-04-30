@@ -1,9 +1,9 @@
-"""Все модели проекта."""
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .validators import validate_year, validate_username
+from api.validators import validate_username
+from .validators import validate_year
 
 
 class User(AbstractUser):
@@ -12,23 +12,27 @@ class User(AbstractUser):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
+
     ROLES = [
         (ADMIN, 'Administrator'),
         (MODERATOR, 'Moderator'),
         (USER, 'User'),
     ]
 
+    username = models.CharField(
+        verbose_name='Имя пользователя',
+        max_length=150,
+        null=False,
+        blank=False,
+        unique=True,
+        validators=[validate_username, ]
+    )
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
         max_length=254,
         unique=True,
-    )
-    username = models.CharField(
-        validators=(validate_username,),
-        verbose_name='Имя пользователя',
-        max_length=150,
         null=False,
-        unique=True
+        blank=False
     )
     role = models.CharField(
         verbose_name='Роль',
@@ -38,8 +42,6 @@ class User(AbstractUser):
     )
     bio = models.TextField(
         verbose_name='О себе',
-        max_length=50,
-        null=True,
         blank=True
     )
     first_name = models.CharField(
@@ -55,14 +57,19 @@ class User(AbstractUser):
     confirmation_code = models.CharField(
         verbose_name='Код подтверждения',
         max_length=255,
-        null=True,
-        blank=False,
+        blank=True,
         default='XXXX'
     )
 
-    @property
-    def is_user(self):
-        return self.role == self.USER
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        ordering = ('id',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'], name='unique_together'
+            )
+        ]
 
     @property
     def is_moderator(self):
@@ -70,15 +77,13 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN
+        return (self.role == self.ADMIN or self.is_superuser or self.is_staff)
+
+    def __str__(self):
+        return self.username
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-
-    class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-        ordering = ('id',)
 
 
 class Category(models.Model):

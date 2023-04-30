@@ -20,17 +20,17 @@ class IsAdmin(BasePermission):
     """Проверка на права доступа для Админа."""
 
     def has_permission(self, request, view):
-        return request.user.role == 'admin' or request.user.is_staff
-
-    def has_object_permission(self, request, view, obj):
-        return request.user.role == 'admin' or request.user.is_staff
+        return (request.user.is_authenticated
+                and request.user.is_admin
+                or request.user.is_superuser)
 
 
 class IsAuthorOrModeratorOrReadOnly(BasePermission):
     """Проверка на права доступа для Модератора или Автора."""
 
     def has_permission(self, request, view):
-        return True
+        return (request.method in SAFE_METHODS
+                or request.user.is_authenticated)
 
     def has_object_permission(self, request, view, obj):
         if hasattr(request.user, "role"):
