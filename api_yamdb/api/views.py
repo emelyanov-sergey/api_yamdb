@@ -35,8 +35,12 @@ class ConfirmationView(APIView):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         email = serializer.validated_data.get('email')
-        user, create = User.objects.get_or_create(username=username,
-                                                  email=email)
+        if User.objects.filter(username=username, email=email).exists():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        user, create = User.objects.get_or_create(
+            username=username,
+            email=email
+        )
         code = default_token_generator.make_token(user)
         user.confirmation_code = code
         user.save()
