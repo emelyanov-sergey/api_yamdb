@@ -37,6 +37,10 @@ class ConfirmationView(APIView):
         email = serializer.validated_data.get('email')
         if User.objects.filter(username=username, email=email).exists():
             return Response(serializer.data, status=status.HTTP_200_OK)
+        elif User.objects.filter(username=username).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        elif User.objects.filter(email=email).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         user, create = User.objects.get_or_create(
             username=username,
             email=email

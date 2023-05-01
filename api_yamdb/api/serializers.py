@@ -32,15 +32,6 @@ class ConfirmationSerializer(serializers.Serializer):
         model = User
         fields = ('username', 'email',)
 
-    def validate(self, data):
-        username = User.objects.filter(username=data['username']).exists()
-        email = User.objects.filter(email=data['email']).exists()
-        if email and not username:
-            raise serializers.ValidationError('400')
-        if username and not email:
-            raise serializers.ValidationError('400')
-        return data
-
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для создания пользователя"""
