@@ -1,27 +1,27 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status
+
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (IsAuthenticated, AllowAny)
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.filters import SearchFilter
 
-from reviews.models import User, Category, Genre, Title, Review
+from reviews.models import Category, Genre, Review, Title, User
 from api.filters import TitleFilterByNameCategoryGenreYear
-from api.serializers import (CategorySerializer, GenreSerializer,
-                             TitleSerializer, ReadOnlyTitleSerializer,
-                             CommentSerializer, UserSerializer,
-                             TokenSerializer, ConfirmationSerializer,
-                             ReviewSerializer)
 from api.permissions import (IsAdmin, IsAdminOrReadOnly,
                              IsModeratorAdminOwnerOrReadOnly)
-from .mixins import CreateDeleteListViewSet
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             ConfirmationSerializer, GenreSerializer,
+                             ReadOnlyTitleSerializer, ReviewSerializer,
+                             TitleSerializer, TokenSerializer, UserSerializer)
+from api.mixins import CreateDeleteListViewSet
 
 
 class ConfirmationView(APIView):
@@ -47,7 +47,7 @@ class ConfirmationView(APIView):
             [user.email],
             fail_silently=False,
         )
-        return Response(request.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TokenView(APIView):
@@ -85,10 +85,16 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer_class=UserSerializer,
     )
     def me(self, request):
-        user = get_object_or_404(User, pk=request.user.id)
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=user.role)
+        if request.method == 'PATCH':
+            serializer = self.get_serializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(role=request.user.role)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -99,7 +105,7 @@ class CategoryViewSet(CreateDeleteListViewSet):
     filter_backends = (SearchFilter,)
     permission_classes = (IsAdminOrReadOnly,)
     search_fields = ('name',)
-    lookup_field = "slug"
+    lookup_field = 'slug'
 
 
 class GenreViewSet(CreateDeleteListViewSet):
@@ -109,14 +115,12 @@ class GenreViewSet(CreateDeleteListViewSet):
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
     permission_classes = (IsAdminOrReadOnly,)
-    lookup_field = "slug"
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений. К каждому сразу добавил среднюю оценку."""
-    queryset = Title.objects.all().annotate(
-        Avg("reviews__score")
-    ).order_by('name')
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilterByNameCategoryGenreYear
     serializer_class = TitleSerializer
