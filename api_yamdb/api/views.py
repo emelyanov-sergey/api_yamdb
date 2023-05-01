@@ -25,7 +25,7 @@ from api.mixins import CreateDeleteListViewSet
 
 
 class ConfirmationView(APIView):
-    """Отправка confirmation_code на email, введенный при регистрации"""
+    """Отправка confirmation_code на email, введенный при регистрации."""
     permission_classes = (AllowAny,)
     queryset = User.objects.all()
     serializer_class = ConfirmationSerializer
@@ -51,7 +51,7 @@ class ConfirmationView(APIView):
 
 
 class TokenView(APIView):
-    """Отправка токена при получении confirmation_code и username"""
+    """Отправка токена при получении confirmation_code и username."""
     permission_classes = (AllowAny,)
 
     def post(self, request):
@@ -68,7 +68,7 @@ class TokenView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Вьюсет Users."""
+    """Вьюсет для модели User."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = (SearchFilter,)
@@ -99,7 +99,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(CreateDeleteListViewSet):
-    """Вьюсет для категорий. Сразу добавил поиск"""
+    """Вьюсет для модели Category."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = (SearchFilter,)
@@ -109,7 +109,7 @@ class CategoryViewSet(CreateDeleteListViewSet):
 
 
 class GenreViewSet(CreateDeleteListViewSet):
-    """Вьюсет для жанров. так же как и выше добавил домашку."""
+    """Вьюсет для модели Genre."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (SearchFilter,)
@@ -119,7 +119,7 @@ class GenreViewSet(CreateDeleteListViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    """Вьюсет для произведений. К каждому сразу добавил среднюю оценку."""
+    """Вьюсет для модели Title."""
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilterByNameCategoryGenreYear
@@ -152,7 +152,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обьектов модели Review."""
+    """Вьюсет для модели Review."""
     serializer_class = ReviewSerializer
     permission_classes = (IsModeratorAdminOwnerOrReadOnly,)
 
