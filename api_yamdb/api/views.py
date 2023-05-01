@@ -26,7 +26,7 @@ from api.mixins import CreateDeleteListViewSet
 
 class ConfirmationView(APIView):
     """Отправка confirmation_code на email, введенный при регистрации"""
-    permission_classes = [AllowAny, ]
+    permission_classes = (AllowAny,)
     queryset = User.objects.all()
     serializer_class = ConfirmationSerializer
 
@@ -52,7 +52,7 @@ class ConfirmationView(APIView):
 
 class TokenView(APIView):
     """Отправка токена при получении confirmation_code и username"""
-    permission_classes = (AllowAny, )
+    permission_classes = (AllowAny,)
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
@@ -75,7 +75,7 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete')
-    permission_classes = (IsAdmin, )
+    permission_classes = (IsAdmin,)
     pagination_class = LimitOffsetPagination
 
     @action(
