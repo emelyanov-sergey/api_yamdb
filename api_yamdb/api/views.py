@@ -7,7 +7,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -45,12 +44,12 @@ class ConfirmationView(APIView):
             username=username,
             email=email
         )
-        code = default_token_generator.make_token(user)
-        user.confirmation_code = code
+        token = default_token_generator.make_token(user)
+        user.confirmation_code = token
         user.save()
         send_mail(
             'Код получения токена',
-            f'Ваш код: {code}',
+            f'Ваш код: {token}',
             'user@ya.ru',
             [user.email],
             fail_silently=False,
@@ -84,7 +83,6 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (IsAdmin,)
-    pagination_class = LimitOffsetPagination
 
     @action(
         methods=['GET', 'PATCH'],
