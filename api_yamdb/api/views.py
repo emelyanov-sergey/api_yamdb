@@ -145,9 +145,17 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsModeratorAdminOwnerOrReadOnly,)
 
+    def get_title(self):
+        """Возвращает объект произведения."""
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
+
     def get_review(self):
-        """Возвращает объект текущего отзыва."""
-        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        """Возвращает объект отзыва."""
+        return get_object_or_404(
+            Review,
+            id=self.kwargs.get('review_id'),
+            title=self.get_title()
+        )
 
     def get_queryset(self):
         """Возвращает комментарии для текущего отзыва."""
