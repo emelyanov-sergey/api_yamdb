@@ -53,7 +53,6 @@ class User(AbstractUser):
         verbose_name='Код подтверждения',
         max_length=255,
         blank=True,
-        default='XXXX',
         null=True
     )
 
