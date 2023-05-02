@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
@@ -10,6 +11,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.serializers import ValidationError
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, Review, Title, User
@@ -34,16 +36,16 @@ class ConfirmationView(APIView):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         email = serializer.validated_data.get('email')
-        if User.objects.filter(username=username, email=email).exists():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif User.objects.filter(username=username).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        elif User.objects.filter(email=email).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        user, create = User.objects.get_or_create(
-            username=username,
-            email=email
-        )
+        try:
+            user, create = User.objects.get_or_create(
+                username=username,
+                email=email
+            )
+        except IntegrityError as error:
+            raise ValidationError(
+                f'Пользователь с таким username={username} или email={email}'
+                f'уже зарегистрирован'
+            ) from error
         token = default_token_generator.make_token(user)
         user.confirmation_code = token
         user.save()
@@ -152,7 +154,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return get_object_or_404(
             Review,
             id=self.kwargs.get('review_id'),
-            title=self.get_title()
+            title=self.kwargs.get('title_id')
         )
 
     def get_queryset(self):
