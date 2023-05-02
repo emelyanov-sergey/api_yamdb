@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
-from reviews.models import Genre, Category, Title, Review, User, Comment
-from api.validators import validate_username
+from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.validators import validate_username
 
 
 class TokenSerializer(serializers.Serializer):
@@ -33,38 +32,15 @@ class ConfirmationSerializer(serializers.Serializer):
         model = User
         fields = ('username', 'email',)
 
-    def validate(self, data):
-        username = User.objects.filter(username=data['username']).exists()
-        email = User.objects.filter(email=data['email']).exists()
-        if email and not username:
-            raise serializers.ValidationError('400')
-        if username and not email:
-            raise serializers.ValidationError('400')
-        return data
-
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для создания пользователя"""
-    username = serializers.CharField(
-        required=True,
-        max_length=150,
-        validators=[
-            validate_username,
-            UniqueValidator(queryset=User.objects.all())
-        ]
-    )
 
     class Meta:
         model = User
         fields = (
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
-        validators = [
-            UniqueTogetherValidator(
-                queryset=User.objects.all(),
-                fields=['username', 'email']
-            ),
-        ]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -73,7 +49,6 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'slug')
-        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -82,7 +57,6 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ('name', 'slug')
-        lookup_field = 'slug'
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -100,7 +74,7 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = (
-            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+            'id', 'name', 'year', 'description', 'genre', 'category'
         )
 
 
@@ -108,10 +82,7 @@ class ReadOnlyTitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
-    rating = serializers.IntegerField(
-        read_only=True,
-        source='reviews__score__avg'
-    )
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
@@ -126,11 +97,10 @@ class CommentSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True
     )
-    review = serializers.SlugRelatedField(slug_field='text', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'author', 'pub_date', 'review')
+        fields = ('id', 'text', 'author', 'pub_date')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -140,11 +110,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True
     )
-    title = serializers.SlugRelatedField(slug_field='name', read_only=True,)
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
         """Запрещает пользователям оставлять повторные отзывы."""

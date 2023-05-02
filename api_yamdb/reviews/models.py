@@ -2,8 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from api.validators import validate_username
-from .validators import validate_year
+from reviews.validators import validate_year, validate_username
 
 
 class User(AbstractUser):
@@ -22,8 +21,6 @@ class User(AbstractUser):
     username = models.CharField(
         verbose_name='Имя пользователя',
         max_length=150,
-        null=False,
-        blank=False,
         unique=True,
         validators=[validate_username, ]
     )
@@ -31,8 +28,6 @@ class User(AbstractUser):
         verbose_name='Адрес электронной почты',
         max_length=254,
         unique=True,
-        null=False,
-        blank=False
     )
     role = models.CharField(
         verbose_name='Роль',
@@ -58,18 +53,16 @@ class User(AbstractUser):
         verbose_name='Код подтверждения',
         max_length=255,
         blank=True,
-        default='XXXX'
+        null=True
     )
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
         ordering = ('id',)
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'], name='unique_together'
-            )
-        ]
 
     @property
     def is_moderator(self):
@@ -81,9 +74,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
 
 
 class Category(models.Model):
@@ -99,13 +89,13 @@ class Category(models.Model):
         unique=True
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         ordering = ('name',)
+
+    def __str__(self):
+        return self.name
 
 
 class Genre(models.Model):
@@ -121,13 +111,13 @@ class Genre(models.Model):
         unique=True
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
         ordering = ('name',)
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
@@ -137,7 +127,7 @@ class Title(models.Model):
         verbose_name='Название',
         max_length=200
     )
-    year = models.IntegerField(
+    year = models.PositiveSmallIntegerField(
         verbose_name='Дата выхода',
         validators=[validate_year]
     )
@@ -158,19 +148,14 @@ class Title(models.Model):
         related_name='titles',
         null=True
     )
-    rating = models.IntegerField(
-        verbose_name='Рейтинг',
-        null=True,
-        default=None
-    )
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
         ordering = ('name',)
+
+    def __str__(self):
+        return self.name
 
 
 class GenreTitle(models.Model):
@@ -187,12 +172,12 @@ class GenreTitle(models.Model):
         on_delete=models.CASCADE
     )
 
-    def __str__(self):
-        return f'{self.title}, жанр - {self.genre}'
-
     class Meta:
         verbose_name = 'Произведение и жанр'
         verbose_name_plural = 'Произведения и жанры'
+
+    def __str__(self):
+        return f'{self.title}, жанр - {self.genre}'
 
 
 class Review(models.Model):
